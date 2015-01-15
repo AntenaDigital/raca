@@ -1,0 +1,491 @@
+#
+# classe
+#
+
+package raca.client;
+
+import raca.util.client.RacaStringUtil;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.swing.JOptionPane;
+
+
+public class RacaNetworkProxy {
+
+	/*** 
+	 * 			DECLARATION OF VARIABLE 
+	 ***/	
+	
+	private boolean isMaster_;
+	private boolean isOnline_;
+	public static boolean NO_BUS_CONTROL_ = false;
+	
+	private String aspect_;
+	public String clientID_;
+	
+	public static String SERVERNAME = new String("147.65.7.10");
+	public static String QUEUE_NAME = "QUEUE_NAME";
+	public static String TOPIC_NAME = "TOPIC_NAME";
+
+	/*
+	 * MASTER and PUPIL command publishing TOPIC
+	 */
+	public static String MASTER_COMMAND_TOPIC_NAME = new String(
+			"jms/topic/RACA_MASTER_COMMAND_TOPIC_");
+
+	public static String PUPIL_COMMAND_TOPIC_NAME = new String(
+			"jms/topic/RACA_PUPIL_COMMAND_TOPIC_");
+
+
+	/*
+	 * MASTER listening on SLAVE REQ QUEUE and publishing on SLAVE ACK
+	 */
+	public static String SLAVE_REQ_QUEUE_NAME = new String(
+			"jms/queue/RACA_SLAVE_REQ_QUEUE_");
+
+	public static String MASTER_REQ_TOPIC_NAME = new String(
+			"jms/topic/RACA_MASTER_REQ_TOPIC_");
+
+
+	/*
+	 * MASTER ACKNOWLEDGE
+	 */
+
+	public static String MASTER_ACK_TOPIC_NAME = new String(
+			"jms/topic/RACA_MASTER_ACK_TOPIC_");
+
+	public static String MASTER_QUEUE_NAME = new String(
+			"jms/queue/RACA_MASTER_QUEUE_");
+
+	public static String SLAVE_ACK_TOPIC_NAME = new String(
+			"jms/topic/RACA_SLAVE_ACK_TOPIC_");	
+
+
+	/*
+	 * CONTROL MESSAGES
+	 */
+	public static String MASTER_REQUEST_LOG_MSG = new String("MASTER_REQUEST");
+
+	public static String MASTER_ACK_LOG_MSG = new String("MASTER_ACK");
+
+	public static String SLAVE_REQ_LOG_MSG = new String("SLAVE_REQ");
+
+	public static String SLAVE_ACK_LOG_MSG = new String("SLAVE_ACK");
+
+	public static String NULL_MSG = new String("");
+
+	public static String COMMAND_PREFIX = new String("<COMMAND");
+
+
+	/*
+	 * CLIENT/SERVER CONTROL MESSAGES
+	 */
+	public static String MEDIATORPROXY_REQ_ID_TAG = "REQ_ID";
+
+	public static String MEDIATORPROXY_COMMAND_TAG = "RPN_COMMAND";
+
+	public static String MEDIATORPROXY_CLIENT_ID_TAG = "CLIENT_ID";
+
+	public static String MEDIATORPROXY_SESSION_ID_TAG = "SESSION_ID";
+
+
+	public static String MEDIATORPROXY_MASTER_UPDATE_TAG = "MASTER_UPDATE";
+
+	public static String MEDIATORPROXY_MASTER_CHECK_TAG = "MASTER_CHECK";
+
+	public static String MEDIATORPROXY_MASTER_RESET_TAG = "MASTER_RESET";
+
+	public static String MEDIATORPROXY_POLL_TAG = "POLL";
+
+	public static String MEDIATORPROXY_NOTEBOARD_POLL_TAG = "OBJ_POLL";
+
+
+	public static String MEDIATORPROXY_SEND_TAG = "SEND";
+	public static String MEDIATORPROXY_PUBLISH_TAG = "PUB";
+
+	public static String MEDIATORPROXY_LISTENING_NAME_TAG = "LISTENING_NAME";
+
+	public static String MEDIATORPROXY_LISTENING_TAG = "SUBSREC";
+
+	public static String MEDIATORPROXY_LOG_MSG_TAG = "LOG_MSG";
+
+
+	public static String MEDIATORPROXY_URL = "http://" + SERVERNAME
+			+ ":8080/racamediatorproxy/";
+
+	public static String ACTIVATED_FRAME_TITLE = "NO_TITLE";
+
+
+
+	/*** 
+	 * 			REFERENCE OF CLASS 
+	 ***/	
+
+	// listens to the slave request queue (MASTER)
+	private RacaConsumerThread slaveReqConsumerThread_ = null;
+
+	// subscription to RACA COMMANDs topic (SLAVE)
+	private RacaSubscriberThread commandSubscriberThread_ = null;
+
+	// subscription for an acknowledge given to a SLAVE to join the session
+	// (ALL)
+	private RacaSubscriberThread slaveAckSubscriberThread_ = null;
+
+	// subscription to MASTER request
+	private RacaSubscriberThread masterReqSubscriberThread_ = null;
+
+	// subscription to MASTER acknowledge (SLAVE)
+	private RacaSubscriberThread masterAckSubscriberThread_ = null;
+
+	// publisher for RACA COMMAND (MASTER)
+	private RacaHttpPublisher commandPublisher_ = null;
+
+	// publisher for MASTER request
+	private RacaHttpPublisher masterRequestPublisher_ = null;
+
+	// queues up a slave request (SLAVE)
+	private RacaHttpSender slaveRequestSender_ = null;
+
+
+	private RacaHttpSender masterSender_ = null;
+
+	private RacaResetableListener masterCheckConsumer_ = null;
+
+	private RacaResetableListener masterResetConsumer_ = null;	
+	
+	private RacaAttendee attendee_ = null;
+	
+	
+	/*** 
+	 * 			METHODS 
+	 ***/	
+
+	private boolean isOnline() {
+		return isOnline_;
+	}
+
+	public RacaNetworkProxy(String clientID){
+		
+		this.clientID_ = clientID;
+	}
+	
+	public RacaNetworkProxy(String clientID, RacaAttendee attendee) {		
+		
+		this.attendee_ = attendee;
+		this.clientID_ = clientID;		
+	}
+
+	public void log() {}
+
+	public void log(String logMessage) {
+		
+	}
+	
+	
+	/*
+	 * envia pedido para se tornar MASTER
+	 */
+	public void sendMasterRequest(String sessionID) {
+
+		// checa para ver se ja existe um MASTER
+		boolean gotMaster = checkMasterQueue(sessionID);
+
+		if (!gotMaster) {
+
+			// I AM THE MASTER NOW FOR SESSION ID...
+			ackMasterRequest(clientID_,sessionID);
+
+		} else {
+
+			// THERE IS A MASTER...SO ASK FOR THE LOCK...
+			if (masterRequestPublisher_ == null)
+				masterRequestPublisher_ = new RacaHttpPublisher(MASTER_REQ_TOPIC_NAME + sessionID);
+
+			masterRequestPublisher_.publish(MASTER_REQUEST_LOG_MSG + '|'+ clientID_);
+
+			log(clientID_ + " has requested MASTER lock for SESSION with ID : "	+ sessionID + '\n');
+
+		}
+
+	}
+	
+	
+	public void sendSlaveRequest() {
+
+	
+		/**
+		 * REQUESTS TO BECOME A SLAVE 
+		 */
+
+		if (slaveRequestSender_ == null)
+			slaveRequestSender_ = new RacaHttpSender(SLAVE_REQ_QUEUE_NAME);
+
+		if (!NO_BUS_CONTROL_) {
+
+			slaveRequestSender_.send(SLAVE_REQ_LOG_MSG + '|' + clientID_);
+
+		} else {	
+
+			// the slave request is always accepted...
+			RacaHttpPublisher publisher = new RacaHttpPublisher(SLAVE_ACK_TOPIC_NAME);
+			publisher.publish(SLAVE_ACK_LOG_MSG + '|' + clientID_);
+			publisher.close();
+		}
+
+	}
+
+	public void ackMasterRequest(String clientID,String sessionID) {
+
+		if (clientID.compareTo(clientID_) == 0 && !sessionID.equals("")) {
+			
+			// TODO : this should be a reconnect !
+			if (isOnline() && !NO_BUS_CONTROL_) {
+
+				// leaves the session as SLAVE
+				// disconnect();
+				subsMasterAck(sessionID);
+				subsSlaveAck(sessionID);
+			}
+
+			// and now BECOMES MASTER
+			log("You are now being configured as MASTER for SESSION with ID : "+ sessionID + '\n');
+			RacaNetworkDialog.instance().setTitle(RacaNetworkDialog.TITLE + "MASTER");
+
+	
+			/*
+			 * RACA COMMAND PUBLISH FOR MASTER
+			 */
+			if (commandPublisher_ == null)
+				commandPublisher_ = new RacaHttpPublisher(MASTER_COMMAND_TOPIC_NAME + sessionID);
+
+			// MASTER SUBS to PUPIL COMMAND TOPIC (specific to old_MKP)
+			if (commandSubscriberThread_ == null)
+				commandSubscriberThread_ = new RacaSubscriberThread(PUPIL_COMMAND_TOPIC_NAME + sessionID);
+
+			commandSubscriberThread_.start();
+
+	
+			/*
+			 * SLAVE REQ RECEIVE
+			 */
+
+			if (slaveReqConsumerThread_ == null) {
+				slaveReqConsumerThread_ = new RacaConsumerThread(SLAVE_REQ_QUEUE_NAME);
+				slaveReqConsumerThread_.start();
+			}
+
+	
+			/*
+			 * MASTER REQ SUBS
+			 */
+			if (masterReqSubscriberThread_ == null) {
+				masterReqSubscriberThread_ = new RacaSubscriberThread(
+						MASTER_REQ_TOPIC_NAME);
+
+				// SETs THE MASTER_QUEUE EMPTY
+				masterReqSubscriberThread_.start();			
+
+			resetMasterQueue(sessionID);
+			updateMasterQueue(clientID, sessionID);
+
+			isOnline_ = true;
+
+			} else
+				log(clientID + " has being acknowledged as MASTER for SESSION with ID : "+ sessionID + '\n');
+		}
+
+	}
+
+	public void ackSlaveRequest(String clientID, String master_aspect, String sessionID, String colorPaint) {
+
+		log(clientID + " has being acknowledged as SLAVE of RACASESSION with ID : " + sessionID + '\n');
+
+	
+		if (clientID.compareTo(clientID_) == 0) {
+
+	
+			/*
+			 * RACA COMMAND PUBLISH
+			 */        	
+	
+			if (commandPublisher_ == null)
+				commandPublisher_ = new RacaHttpPublisher(PUPIL_COMMAND_TOPIC_NAME + sessionID);
+
+	
+			/* 
+			 * SLAVE SUBS to RACA COMMAND TOPIC
+			 */            
+	
+			if (commandSubscriberThread_ == null)
+				commandSubscriberThread_ = new RacaSubscriberThread(MASTER_COMMAND_TOPIC_NAME + sessionID);
+
+			commandSubscriberThread_.start();
+
+			log("You are now following RACASESSION with ID : " + sessionID + '\n');
+
+			RacaNetworkDialog.instance().setTitle(RacaNetworkDialog.TITLE + "PUPIL");
+
+			if (aspect_.compareTo(master_aspect) != 0)
+				JOptionPane.showMessageDialog(null,
+						"Please adjust your aspect ratio to " + master_aspect, "Aspect Warning", JOptionPane.WARNING_MESSAGE);
+
+			//RacaCommandModule.setPupilColor(pupilColor);
+			attendee_.setColorPaint_(colorPaint);
+		}
+
+	}
+
+	public void subsMasterAck(String sessionID) {
+
+		if (masterAckSubscriberThread_ == null)
+			masterAckSubscriberThread_ = new RacaSubscriberThread(MASTER_ACK_TOPIC_NAME + sessionID);
+
+		masterAckSubscriberThread_.start();
+
+		log("Will be listening to MASTER ACK now...");
+
+	}
+
+	public void subsSlaveAck(String sessionID) {
+
+		if (slaveAckSubscriberThread_ == null)
+			slaveAckSubscriberThread_ = new RacaSubscriberThread(SLAVE_ACK_TOPIC_NAME + sessionID);
+
+		slaveAckSubscriberThread_.start();
+		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO,"Will be listening to SLAVE ACK now...");
+
+	}
+
+	public void updateMasterQueue(String clientID, String sessionID) {
+
+		/** UPDATES THE MASTER_QUEUE STATUS */		
+
+			// FILLs UP THE MASTER_QUEUE with proper CONTROL MSGs
+			if (masterSender_ == null) {
+				masterSender_ = new RacaHttpSender(MASTER_QUEUE_NAME + sessionID);
+			}
+
+			// CHECK IF FIFO really ??
+			masterSender_.send(MASTER_ACK_LOG_MSG + '|' + clientID);
+
+			try {
+
+				log("Will now hit RACA Mediator URL..." + '\n');
+
+				URL racaMediatorURL = new URL(MEDIATORPROXY_URL	+ "racamasterqueueproxy" + "?"+ MEDIATORPROXY_REQ_ID_TAG + '='
+						+ MEDIATORPROXY_MASTER_UPDATE_TAG + "&"	+ MEDIATORPROXY_CLIENT_ID_TAG
+						+ '=' + clientID);
+
+				URLConnection racaMediatorConn = racaMediatorURL.openConnection();
+				
+				BufferedReader buffReader = new BufferedReader(new InputStreamReader(racaMediatorConn.getInputStream()));
+
+				/*
+				StringBuffer fullText = new StringBuffer();
+				Boolean buffFlag = false;*/
+				String text = new String();
+				while ((text = buffReader.readLine()) != null) {
+
+				}
+
+			}catch (Exception exc) {
+				exc.printStackTrace();
+			}
+	}
+
+	public void resetMasterQueue(String sessionID) {
+
+		/** RESETs THE MASTER_QUEUE STATUS // NON PERSISTENT */
+
+		if (masterResetConsumer_ == null){
+
+			log("WARN : a Http Polling context will be started...");
+
+			try {
+
+				masterResetConsumer_ = new RacaHttpTxtPoller(new RacaConsumer(MASTER_QUEUE_NAME + sessionID,false,false),
+						RacaHttpPoller.buildHitURL(MASTER_QUEUE_NAME + sessionID));
+
+			} catch (MalformedURLException e) {
+
+				e.printStackTrace();
+				log("message erro...: "+ e.getMessage());
+			}
+
+		} else
+			masterResetConsumer_ = new RacaConsumer(MASTER_QUEUE_NAME + sessionID);
+
+		// resets and releases the MASTER_QUEUE for others to listen to...
+		masterResetConsumer_.reset();        
+
+		masterResetConsumer_ = null;
+		log("MASTER QUEUE has being reset...");
+
+	}
+
+	public boolean checkMasterQueue(String sessionID){
+		
+		/**
+		 * REQUESTS TO BECOME MASTER 
+		 * WILL BE A QUICK ACCESS METHOD TO THE
+		 * MASTER_QUEUE
+		 */
+
+		boolean gotMaster = false;
+
+		if (masterCheckConsumer_ == null) {
+
+				log("WARN : a Http Polling context will be started...");
+				
+				try {
+					
+					masterCheckConsumer_ = new RacaHttpTxtPoller(new RacaConsumer(MASTER_QUEUE_NAME + sessionID, false, false),
+							RacaHttpPoller.buildHitURL(MASTER_QUEUE_NAME + sessionID));
+				
+				} catch (MalformedURLException e) {				
+					e.printStackTrace();
+					log("message err... "+ e.getMessage());
+				}
+				
+
+			} else
+				// PERSISTENT !
+				masterCheckConsumer_ = new RacaConsumer(MASTER_QUEUE_NAME + sessionID, true, false);
+
+		gotMaster = masterCheckConsumer_.check();
+
+		// releases the MASTER_QUEUE for others to listen to...
+		masterCheckConsumer_.stopsListening();
+		masterCheckConsumer_ = null;
+
+		log("CHECK MASTER QUEUE has returned : " + gotMaster + " for RACASESSION with ID : " + sessionID + '\n');
+
+		return gotMaster;
+
+	}
+
+	public void sendCommand(String commandDesc) {
+
+		commandPublisher_.publish(RacaStringUtil.trimURL(commandDesc));
+
+		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO,"Command successfully published was : " + commandDesc);
+
+		log("COMMAND EXECUTED : = "+ RacaStringUtil.extractCommandName(commandDesc));
+	}
+
+	public void sendCommand(Object obj) {
+
+		commandPublisher_.publish(obj);
+
+		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, "Object successfully published ! ");
+
+	}
+
+}
