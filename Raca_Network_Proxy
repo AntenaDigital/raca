@@ -43,7 +43,6 @@ public class RacaNetworkProxy {
 	public static String PUPIL_COMMAND_TOPIC_NAME = new String(
 			"jms/topic/RACA_PUPIL_COMMAND_TOPIC_");
 
-
 	/*
 	 * MASTER listening on SLAVE REQ QUEUE and publishing on SLAVE ACK
 	 */
@@ -52,7 +51,6 @@ public class RacaNetworkProxy {
 
 	public static String MASTER_REQ_TOPIC_NAME = new String(
 			"jms/topic/RACA_MASTER_REQ_TOPIC_");
-
 
 	/*
 	 * MASTER ACKNOWLEDGE
@@ -66,7 +64,6 @@ public class RacaNetworkProxy {
 
 	public static String SLAVE_ACK_TOPIC_NAME = new String(
 			"jms/topic/RACA_SLAVE_ACK_TOPIC_");	
-
 
 	/*
 	 * CONTROL MESSAGES
@@ -82,7 +79,6 @@ public class RacaNetworkProxy {
 	public static String NULL_MSG = new String("");
 
 	public static String COMMAND_PREFIX = new String("<COMMAND");
-
 
 	/*
 	 * CLIENT/SERVER CONTROL MESSAGES
@@ -123,7 +119,6 @@ public class RacaNetworkProxy {
 	public static String ACTIVATED_FRAME_TITLE = "NO_TITLE";
 
 
-
 	/*** 
 	 * 			REFERENCE OF CLASS 
 	 ***/	
@@ -162,7 +157,6 @@ public class RacaNetworkProxy {
 	
 	private RacaAttendee attendee_ = null;
 	
-	
 	/*** 
 	 * 			METHODS 
 	 ***/	
@@ -188,7 +182,6 @@ public class RacaNetworkProxy {
 		
 	}
 	
-	
 	/*
 	 * envia pedido para se tornar MASTER
 	 */
@@ -206,7 +199,7 @@ public class RacaNetworkProxy {
 
 			// THERE IS A MASTER...SO ASK FOR THE LOCK...
 			if (masterRequestPublisher_ == null)
-				masterRequestPublisher_ = new RacaHttpPublisher(MASTER_REQ_TOPIC_NAME + sessionID);
+				masterRequestPublisher_ = new RacaHttpPublisher(MASTER_REQ_TOPIC_NAME + sessionID, sessionID);
 
 			masterRequestPublisher_.publish(MASTER_REQUEST_LOG_MSG + '|'+ clientID_);
 
@@ -216,10 +209,8 @@ public class RacaNetworkProxy {
 
 	}
 	
-	
-	public void sendSlaveRequest() {
+	public void sendSlaveRequest(String sessionID) {
 
-	
 		/**
 		 * REQUESTS TO BECOME A SLAVE 
 		 */
@@ -234,7 +225,7 @@ public class RacaNetworkProxy {
 		} else {	
 
 			// the slave request is always accepted...
-			RacaHttpPublisher publisher = new RacaHttpPublisher(SLAVE_ACK_TOPIC_NAME);
+			RacaHttpPublisher publisher = new RacaHttpPublisher(SLAVE_ACK_TOPIC_NAME + sessionID, sessionID);
 			publisher.publish(SLAVE_ACK_LOG_MSG + '|' + clientID_);
 			publisher.close();
 		}
@@ -258,20 +249,18 @@ public class RacaNetworkProxy {
 			log("You are now being configured as MASTER for SESSION with ID : "+ sessionID + '\n');
 			RacaNetworkDialog.instance().setTitle(RacaNetworkDialog.TITLE + "MASTER");
 
-	
 			/*
 			 * RACA COMMAND PUBLISH FOR MASTER
 			 */
 			if (commandPublisher_ == null)
-				commandPublisher_ = new RacaHttpPublisher(MASTER_COMMAND_TOPIC_NAME + sessionID);
+				commandPublisher_ = new RacaHttpPublisher(MASTER_COMMAND_TOPIC_NAME + sessionID, sessionID);
 
 			// MASTER SUBS to PUPIL COMMAND TOPIC (specific to old_MKP)
 			if (commandSubscriberThread_ == null)
-				commandSubscriberThread_ = new RacaSubscriberThread(PUPIL_COMMAND_TOPIC_NAME + sessionID);
+				commandSubscriberThread_ = new RacaSubscriberThread(PUPIL_COMMAND_TOPIC_NAME + sessionID, sessionID); //------
 
 			commandSubscriberThread_.start();
 
-	
 			/*
 			 * SLAVE REQ RECEIVE
 			 */
@@ -281,13 +270,12 @@ public class RacaNetworkProxy {
 				slaveReqConsumerThread_.start();
 			}
 
-	
 			/*
 			 * MASTER REQ SUBS
 			 */
 			if (masterReqSubscriberThread_ == null) {
 				masterReqSubscriberThread_ = new RacaSubscriberThread(
-						MASTER_REQ_TOPIC_NAME);
+						MASTER_REQ_TOPIC_NAME + sessionID, sessionID);
 
 				// SETs THE MASTER_QUEUE EMPTY
 				masterReqSubscriberThread_.start();			
@@ -307,24 +295,19 @@ public class RacaNetworkProxy {
 
 		log(clientID + " has being acknowledged as SLAVE of RACASESSION with ID : " + sessionID + '\n');
 
-	
 		if (clientID.compareTo(clientID_) == 0) {
 
-	
 			/*
 			 * RACA COMMAND PUBLISH
 			 */        	
-	
 			if (commandPublisher_ == null)
-				commandPublisher_ = new RacaHttpPublisher(PUPIL_COMMAND_TOPIC_NAME + sessionID);
+				commandPublisher_ = new RacaHttpPublisher(PUPIL_COMMAND_TOPIC_NAME + sessionID, sessionID);
 
-	
 			/* 
 			 * SLAVE SUBS to RACA COMMAND TOPIC
 			 */            
-	
 			if (commandSubscriberThread_ == null)
-				commandSubscriberThread_ = new RacaSubscriberThread(MASTER_COMMAND_TOPIC_NAME + sessionID);
+				commandSubscriberThread_ = new RacaSubscriberThread(MASTER_COMMAND_TOPIC_NAME + sessionID, sessionID);
 
 			commandSubscriberThread_.start();
 
@@ -345,7 +328,7 @@ public class RacaNetworkProxy {
 	public void subsMasterAck(String sessionID) {
 
 		if (masterAckSubscriberThread_ == null)
-			masterAckSubscriberThread_ = new RacaSubscriberThread(MASTER_ACK_TOPIC_NAME + sessionID);
+			masterAckSubscriberThread_ = new RacaSubscriberThread(MASTER_ACK_TOPIC_NAME + sessionID, sessionID);
 
 		masterAckSubscriberThread_.start();
 
@@ -356,7 +339,7 @@ public class RacaNetworkProxy {
 	public void subsSlaveAck(String sessionID) {
 
 		if (slaveAckSubscriberThread_ == null)
-			slaveAckSubscriberThread_ = new RacaSubscriberThread(SLAVE_ACK_TOPIC_NAME + sessionID);
+			slaveAckSubscriberThread_ = new RacaSubscriberThread(SLAVE_ACK_TOPIC_NAME + sessionID, sessionID);
 
 		slaveAckSubscriberThread_.start();
 		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO,"Will be listening to SLAVE ACK now...");
@@ -411,7 +394,7 @@ public class RacaNetworkProxy {
 			try {
 
 				masterResetConsumer_ = new RacaHttpTxtPoller(new RacaConsumer(MASTER_QUEUE_NAME + sessionID,false,false),
-						RacaHttpPoller.buildHitURL(MASTER_QUEUE_NAME + sessionID));
+						RacaHttpPoller.buildHitURL(MASTER_QUEUE_NAME + sessionID, sessionID));
 
 			} catch (MalformedURLException e) {
 
@@ -447,7 +430,7 @@ public class RacaNetworkProxy {
 				try {
 					
 					masterCheckConsumer_ = new RacaHttpTxtPoller(new RacaConsumer(MASTER_QUEUE_NAME + sessionID, false, false),
-							RacaHttpPoller.buildHitURL(MASTER_QUEUE_NAME + sessionID));
+							RacaHttpPoller.buildHitURL(MASTER_QUEUE_NAME + sessionID, sessionID));
 				
 				} catch (MalformedURLException e) {				
 					e.printStackTrace();
