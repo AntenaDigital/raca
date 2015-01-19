@@ -1,0 +1,208 @@
+##
+Classe onde realizo a tarefa 
+de Ler um arquivo.
+##
+package lessonTwo;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+
+public class ReadFile extends Thread {
+
+	@Override
+	public void run() {
+	
+		this.lendoArq();
+	}
+	
+	public void lendoArq(){
+		
+		File file = new File("c:\\arquivo.txt");
+		
+		try {
+			
+			FileReader read = new FileReader(file);
+			BufferedReader readFile = new BufferedReader(read);
+			
+			String linha = readFile.readLine();
+			
+			while(linha != null){
+				
+				System.out.println("");
+				System.out.println("LENDO UM ARQUIVO ...");
+				System.out.println("");
+				System.out.printf("%s\n", linha);
+				System.out.println("");
+				
+				linha = readFile.readLine();
+				
+				Thread.sleep(2*1000);
+			}
+			
+			readFile.close();
+			read.close();
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+}
+
+##
+Classe onde realizo a tarefa 
+de Abrir o banco e listar INFO de uma tabela.
+##
+
+package lessonTwo;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class SearchInDataBase extends Thread {
+
+	private Connection conn = null;
+	private String url = "jdbc:mysql://localhost:3306/contato";
+	private String user = "root";
+	private String pass = "";
+	private String driver = "com.mysql.jdbc.Driver";
+	
+	
+	public SearchInDataBase(){
+		
+		try {
+			
+			Class.forName(driver);
+			conn = DriverManager.getConnection(url, user, pass);
+			
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			System.out.println("message... " + e.getMessage());
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("message... " + e.getMessage());
+		}finally{
+			System.out.println("if there exception no... World is happy!");
+		}
+	}
+	
+	public void closeDB(){
+		
+		try {
+			conn.close();
+			System.out.println("WARN... Conection close as success!");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("message... " + e.getMessage());
+		}
+	}
+	
+	@Override
+	public void run() {
+		this.listar();
+	}
+	
+	public void listar(){
+		
+		String url = "select * from pessoa";
+		
+		try {
+			
+			PreparedStatement pstmt = conn.prepareStatement(url);
+			ResultSet rs = pstmt.executeQuery();
+			
+			while(rs.next()){
+				
+				int id = rs.getInt("id");
+				String nome = rs.getString("nome");
+				String tele = rs.getString("telefone");
+				
+				System.out.println("");
+				System.out.println("LISTANDO INFOMACAO DE UMA TABELA ...");
+				System.out.println("");
+				
+				System.out.println(" Código : " + id + "\n Nome : " + nome + "  telefone : " + tele);
+				System.out.println("");
+				
+				Thread.sleep(5*1000);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+}
+
+##
+Classe onde realizo a tarefa de IMPRIMIR.
+##
+
+package lessonOne;
+
+public class Impressora extends Thread {
+
+	@Override
+	public void run() {
+		
+		int count = 50;
+		while(count > 0){ 
+			
+			System.out.println("I M P R E S S O R A");
+			System.out.println("");
+			System.out.println("Imprimindo Folha");
+			System.out.println("");
+			System.out.println(Thread.currentThread().getName() + ": thread iniciada");
+			
+			count--;
+			
+			try {
+				
+				Thread.sleep(1000);
+				
+			} catch (InterruptedException e) {
+				
+				e.printStackTrace();
+			}
+		}
+		System.out.println("WARN :: ACABOU PAPEL...");
+	}	
+}
+
+##
+Classe onde Minhas threads são iniciadas...
+##
+
+package lessonTwo;
+
+import lessonOne.Impressora;
+
+public class PrincipalClass {
+
+	public static void main(String[] args) {
+		
+		ReadFile read = new ReadFile();
+		SearchInDataBase search = new SearchInDataBase();
+		Impressora imp = new Impressora();
+		
+		Thread readFile = new Thread(read);
+		Thread dbSearch = new Thread(search);
+		Thread imprime = new Thread(imp);
+		
+		System.out.println("REALIZANDO VARIAS TAREFAS AO MESMO TEMPO...");
+		System.out.println("");
+		
+		readFile.start();
+		dbSearch.start();
+		imprime.start();
+	}
+}
