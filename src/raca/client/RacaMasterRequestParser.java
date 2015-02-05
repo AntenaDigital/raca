@@ -1,9 +1,10 @@
 package raca.client;
 
+import raca.util.client.RacaStringUtil;
+
 
 public class RacaMasterRequestParser implements RacaMessageParser {
 
-	//
 	private String topicName_ = RacaNetworkProxy.MASTER_REQUEST_LOG_MSG; 
 	private String sessionID_;
 	private RacaAttendee attendee_ = null;
@@ -20,10 +21,10 @@ public class RacaMasterRequestParser implements RacaMessageParser {
 		if (obj instanceof String) {			
 			String text = obj.toString();
 
-			if (attendee_.verifyIsMaster(sessionID_)== true) {
+			if (attendee_.isMaster(sessionID_)== true) {
 
-				/*RacaMasterReqDialog reqDialog = new RacaMasterReqDialog(RacaNetworkProxy.filterClientID(text));
-            	reqDialog.setVisible(true);*/
+				RacaMasterReqDialog reqDialog = new RacaMasterReqDialog(RacaStringUtil.filterClientID(text), attendee_, sessionID_);
+            	reqDialog.setVisible(true);
 			}
 		}
 

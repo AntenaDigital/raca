@@ -8,14 +8,12 @@ import raca.client.RacaCommandParser;
 */
 public class RacaProxySubscriber extends RacaCommandParser {
 
-    
-	public RacaProxySubscriber(String sessionID) {
+	
+	public RacaProxySubscriber(String topicName, String sessionID) {
 		
-    	super(sessionID);
+    	super(topicName, sessionID);
 		
-	}
-
-	private String topicName_;
+	}	
 
     public void parseMessageObject(Object obj) {
 

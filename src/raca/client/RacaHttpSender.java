@@ -69,5 +69,8 @@ public class RacaHttpSender {
     		exc.printStackTrace();
 
     	}    	
-    }		
+    }
+    
+    public void close() {}
+
 }

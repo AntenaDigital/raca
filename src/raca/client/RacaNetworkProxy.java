@@ -120,23 +120,7 @@ public class RacaNetworkProxy {
 
 	public static String ACTIVATED_FRAME_TITLE = "NO_TITLE";
 
-	/*
-	 * TODO - lista as possiveis sessoes ja existentes
-	 */
-	public static List<String> listCurrentSessions() {
 		
-		return new ArrayList<String>();
-	}
-
-	
-	/*
-	 * TODO - cria uma nova sessao
-	 */
-	public static String startNewSession() {
-		
-		return "NEW SESSION ID";
-	}
-	
 	/*** 
 	 * 			REFERENCE OF CLASS 
 	 ***/	
@@ -175,27 +159,40 @@ public class RacaNetworkProxy {
 	
 	private RacaAttendee attendee_ = null;
 	
+	
 	/*** 
 	 * 			METHODS 
-	 ***/	
-
+	 ***/
 	
-	private boolean isOnline() {
-		return attendee_.getIsOnline();
+	/*
+	 * TODO - lista as possiveis sessoes ja existentes
+	 */
+	public static List<String> listCurrentSessions() {
+		
+		return new ArrayList<String>();
 	}
-
 	
+	
+	/*
+	 * TODO - cria uma nova sessao
+	 */
+	public static String startNewSession() {
+		
+		return "NEW SESSION ID";
+	}
+	
+
 	public RacaNetworkProxy(RacaAttendee attendee) {		
 		
-		this.attendee_ = attendee;
-			
-	}
+		this.attendee_ = attendee;			
+	
+	}	
 
-	public void log(String logMessage) {
+	public void log(String logMessage) {		
 		
 		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, logMessage);
-
-	}
+	
+	}	
 	
 	
 	// 		envia pedido para se tornar MASTER	
@@ -209,8 +206,7 @@ public class RacaNetworkProxy {
 			attendee_.sessions_.put(sessionID, true);
 			
 			// I AM THE MASTER NOW FOR SESSION ID...
-			ackMasterRequest(attendee_.getClientID(), sessionID);
-			
+			ackMasterRequest(attendee_.getClientID(), sessionID);			
 			
 		} else {
 
@@ -243,10 +239,10 @@ public class RacaNetworkProxy {
 	
 	public void ackMasterRequest(String clientID, String sessionID) {
 
-		if (clientID.compareTo(attendee_.getClientID()) == 0) { //&& !sessionID.equals("")
+		if (clientID.compareTo(attendee_.getClientID()) == 0) {
 			
 			// TODO : this should be a reconnect !
-			if (attendee_.verifyIsMaster(sessionID)) {
+			if (attendee_.isMaster(sessionID)) {
 				
 				// leaves the session as PUPIL
 				subsMasterAck(sessionID, clientID);				
@@ -281,7 +277,7 @@ public class RacaNetworkProxy {
 			 */
 
 			if (pupilReqSubscribeThread_ == null) {
-				pupilReqSubscribeThread_ = new RacaSubscriberThread(new RacaPupilRequestParser(sessionID) , sessionID, clientID);
+				pupilReqSubscribeThread_ = new RacaSubscriberThread(new RacaPupilRequestParser(sessionID, this.attendee_) , sessionID, clientID);
 				pupilReqSubscribeThread_.start();
 			}
 
@@ -297,7 +293,7 @@ public class RacaNetworkProxy {
 			resetMasterQueue(sessionID, clientID);
 			updateMasterQueue(clientID, sessionID);
 
-			attendee_.setIsOnline(true);
+			attendee_.setOnline(true);
 
 			} else
 				log(clientID + " has being acknowledged as MASTER for SESSION with ID : "+ sessionID + '\n');
@@ -334,7 +330,8 @@ public class RacaNetworkProxy {
 				JOptionPane.showMessageDialog(null,
 						"Please adjust your aspect ratio to " + master_aspect, "Aspect Warning", JOptionPane.WARNING_MESSAGE);
 
-			attendee_.setColorPaint_(colorPaint);
+			attendee_.setColor_(colorPaint);
+			attendee_.setOnline(true);
 		}
 
 	}
@@ -412,7 +409,7 @@ public class RacaNetworkProxy {
 			log("WARN : a Http Polling context will be started...");
 
 			try {
-					// RacaSubscriberParser() ---------
+					                                       // RacaSubscriberParser() ---------
 				masterResetConsumer_ = new RacaHttpPoller(new RacaCommandParser(MASTER_QUEUE_NAME,sessionID),
 									RacaHttpPoller.buildSubscribeHitURL(MASTER_QUEUE_NAME + sessionID, sessionID), sessionID, clientID);
       
@@ -449,7 +446,7 @@ public class RacaNetworkProxy {
 				log("WARN : a Http Polling context will be started...");
 				
 				try {
-					                                         // RacaSubscriberParser() -----------
+					                                           // RacaSubscriberParser() -----------
 					masterCheckConsumer_ = new RacaHttpPoller(new RacaCommandParser(MASTER_QUEUE_NAME,sessionID),
 							RacaHttpPoller.buildSubscribeHitURL(MASTER_QUEUE_NAME + sessionID, sessionID), sessionID, clientID);
 
@@ -485,6 +482,100 @@ public class RacaNetworkProxy {
 		commandPublisher_.publish(obj);
 
 		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, "Object successfully published ! ");
+
+	}
+
+
+	public void unsubscribeAsMaster(){
+		
+		if (commandPublisher_ != null) {
+            commandPublisher_.close();
+            commandPublisher_ = null;            
+        }
+        
+        if (commandSubscriberThread_ != null) {
+            commandSubscriberThread_.unsubscribe();
+            commandSubscriberThread_ = null;
+        }
+        
+        if (masterAckSubscriberThread_ != null) {
+            masterAckSubscriberThread_.unsubscribe();
+            masterAckSubscriberThread_ = null;
+        }
+
+        if (masterReqSubscriberThread_ != null) {
+            masterReqSubscriberThread_.unsubscribe();
+            masterReqSubscriberThread_ = null;
+        }
+
+
+        if (masterCheckConsumer_ != null) {
+            masterCheckConsumer_.stopsListening();
+            masterCheckConsumer_ = null;
+        }
+        
+        if (masterResetConsumer_ != null) {
+            masterResetConsumer_.stopsListening();
+            masterResetConsumer_ = null;
+        }
+
+        if (masterSender_ != null) {
+            masterSender_.close();
+            masterSender_ = null;
+        }
+        
+        
+        if (masterRequestPublisher_ != null) {
+            masterRequestPublisher_.close();
+            masterRequestPublisher_ = null;
+        }
+        
+        try {
+                // needs time for reset
+                Thread.sleep((long)1000);
+            }
+        catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+
+            log("All Connections closed for MASTER session ...");
+            // TODO notify that SESSION has no MASTER now...
+                   
+        		
+	}
+	
+	public void unsubscribe(){
+		
+		if (commandPublisher_ != null) {
+            commandPublisher_.close();
+            commandPublisher_ = null;            
+        }
+        
+        if (commandSubscriberThread_ != null) {
+            commandSubscriberThread_.unsubscribe();
+            commandSubscriberThread_ = null;
+        }
+		
+		if (pupilRequestSender_ != null) {
+            pupilRequestSender_.close();
+            pupilRequestSender_ = null;
+        }
+		
+		if (pupilAckSubscriberThread_ != null) {
+            pupilAckSubscriberThread_.unsubscribe();
+            pupilAckSubscriberThread_ = null;
+        }
+		
+		try {
+        
+			// needs time for reset
+            Thread.sleep((long)1000);
+
+		}catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+		
+            log("All Connections closed for SLAVE session ...");   
 
 	}
 

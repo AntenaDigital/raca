@@ -28,20 +28,25 @@ public class RacaAttendee {
 	
 	}	
 	
-	public void setIsMaster(String sessionID) {
+	public void switchToMaster(String sessionID) {
 		
 		sessions_.replace(sessionID, false, true);	
 	}
 	
-	public boolean verifyIsMaster(String sessionID) {
+	public void switchToPupil(String sessionID){
+		
+		sessions_.replace(sessionID, true, false);
+	}
+	
+	public boolean isMaster(String sessionID) {
 		return sessions_.get(sessionID);
 	}	
 	
-	public boolean 	getIsOnline() {
+	public boolean 	isOnline() {
 		return isOnline_;
 	}
 
-	public void setIsOnline(boolean isOnline) {
+	public void setOnline(boolean isOnline) {
 		this.isOnline_ = isOnline;
 	}
 
@@ -49,11 +54,11 @@ public class RacaAttendee {
 		return clientID_;
 	}	
 	
-	public String getColorPaint_() {
+	public String getColor_() {
 		return color_;
 	}
 	
-	public void setColorPaint_(String color) {
+	public void setColor_(String color) {
 		this.color_ = color;
 	}
 	
@@ -69,15 +74,21 @@ public class RacaAttendee {
 	}	
 	
 	public void joinSessionAsMaster(String sessionID) throws MalformedURLException {
-		
+
 		proxy_.subsMasterAck(sessionID, getClientID());
 		proxy_.sendMasterRequest(sessionID);			
-		
+
+	}
+
+	public void quitSession(String sessionID){
+
+		if (isMaster(sessionID))
+			proxy_.unsubscribeAsMaster();
+		else
+			proxy_.unsubscribe();
+
 	}
 	
-	public void quitSession(){	}
-
-
 	// TODO verificar isso...
 	@Override
 	public int hashCode() {
@@ -104,5 +115,5 @@ public class RacaAttendee {
 			return false;
 		return true;
 	}	
-	
+
 }

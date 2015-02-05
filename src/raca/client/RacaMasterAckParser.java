@@ -7,14 +7,14 @@ import raca.util.client.RacaStringUtil;
 
 public class RacaMasterAckParser implements RacaMessageParser{
 
-	protected boolean end_ = false;
+	protected boolean end_ = false;	
 	
-	private RacaNetworkProxy proxy_ = null;	
 	private String topicName_ = RacaNetworkProxy.MASTER_ACK_TOPIC_NAME;
 	private String sessionID_;
-	
+	private RacaNetworkProxy proxy_ = null;
 	
 	public RacaMasterAckParser(String sessionID, RacaNetworkProxy proxy) {		
+
 		proxy_ = proxy;
 		sessionID_ = sessionID;		
 	}
@@ -39,13 +39,13 @@ public class RacaMasterAckParser implements RacaMessageParser{
 	@Override
 	public String topicName() {
 		
-		return null;
+		return topicName_;
 	}
 
 	@Override
 	public String hitURL() {
 		
-		return null;
+		return topicName_ + sessionID_;
 	}
 
 }
