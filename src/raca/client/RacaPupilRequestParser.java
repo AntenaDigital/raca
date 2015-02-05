@@ -2,7 +2,10 @@ package raca.client;
 
 import raca.util.client.RacaStringUtil;
 
-
+/**
+*
+* @author ANTENA DIGITAL
+*/
 public class RacaPupilRequestParser implements RacaMessageParser {
 
 	private String topicName_ = RacaNetworkProxy.PUPIL_REQ_LOG_MSG;
@@ -23,7 +26,7 @@ public class RacaPupilRequestParser implements RacaMessageParser {
 		
 			if (attendee_.isMaster(sessionID_)== true) {
 
-                RacaPupilReqDialog reqDialog = new RacaPupilReqDialog(RacaStringUtil.filterClientID(text));
+                RacaPupilReqDialog reqDialog = new RacaPupilReqDialog(RacaStringUtil.filterClientID(text), attendee_, sessionID_);
                 reqDialog.setVisible(true);
             }		
 		}		

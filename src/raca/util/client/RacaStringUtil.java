@@ -15,8 +15,7 @@ public class RacaStringUtil {
 		}
 		
 		return _instance;
-	}
-	
+	}	
 	
 	public static String filterClientID(String text) {
 
@@ -29,7 +28,6 @@ public class RacaStringUtil {
 		
 		return null;
 	}
-
 	
     public static String filterAspectRatio(String text) {
 
@@ -43,14 +41,12 @@ public class RacaStringUtil {
         String[] split = text.split("\\|");
         return split[3];
     }
-
     
     public static String trimLocalJmsPrefix(String jmsName) {
 
         // LOCAL JNDI DOES NOT USE jms/ prefix...
         return jmsName.substring(3, jmsName.length());
     }
-
     
     public static String trimURL(String url) {
 
@@ -65,7 +61,6 @@ public class RacaStringUtil {
 
         return null;
     }
-
     
     public static String extractCommandName(String commandDesc) {
         

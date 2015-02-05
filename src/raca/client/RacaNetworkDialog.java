@@ -1,6 +1,5 @@
 package raca.client;
 
-
 import javax.swing.JDialog;
 
 

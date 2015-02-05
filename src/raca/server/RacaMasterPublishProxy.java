@@ -2,6 +2,7 @@ package raca.server;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.PrintWriter;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletException;
@@ -19,53 +20,42 @@ import raca.util.client.RacaStringUtil;
 */
 public class RacaMasterPublishProxy extends RacaMediatorProxy {
 
-	 @Override
+	 /**
+	 * 
+	 */
+	private static final long serialVersionUID = 2L;
+
+	@Override
 	    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-	        String reqId = (String) request.getParameter(RacaNetworkProxy.MEDIATORPROXY_REQ_ID_TAG);
-	        String clientId = (String) request.getParameter(RacaNetworkProxy.MEDIATORPROXY_CLIENT_ID_TAG);
-	        String topicName = (String) request.getParameter(RacaNetworkProxy.TOPIC_NAME);
+	        String reqID_ = (String) request.getParameter(RacaNetworkProxy.MEDIATORPROXY_REQ_ID_TAG);
+	        String clientID_ = (String) request.getParameter(RacaNetworkProxy.MEDIATORPROXY_CLIENT_ID_TAG);
+	        String topicName_ = (String) request.getParameter(RacaNetworkProxy.TOPIC_NAME);
+	        
+	        response.setContentType("text/html");
 
+	        try {
 
-	        if ((reqId == null) && (clientId == null) && (topicName == null))  {
+	            PrintWriter writer = response.getWriter();
 
-	                System.out.println("preparing to publish the object instance for master... \n");
-	                RacaHttpPublisher publisher = null;
-	                ObjectInputStream in = new ObjectInputStream(request.getInputStream());
+	            writer.println("<html>");
+	            writer.println("<head>");
+	            writer.println("<title>MASTER Publish Servlet</title>");
+	            writer.println("</head>");
+	            writer.println("<body>");          
 
-	                try {
+	            writer.println("<h1>Mensagem no MASTER Publish Servlet \ndo CLIENT-ID :" + clientID_ + " - REQ-ID :"+ reqID_+ " - TOPIC-NAME :"+ topicName_ +"</h1>");
 
-	                    System.out.println("Will now publish the object instance for master... \n");
-	                    Object obj = in.readObject();
+	            writer.println("</body>");
+	            writer.println("</html>");
 
-			    publisher = new RacaHttpPublisher(RacaStringUtil.trimLocalJmsPrefix(RacaNetworkProxy.MASTER_COMMAND_TOPIC_NAME),null);
-	                    publisher.publish(obj);
-
-	                } catch (ClassNotFoundException e) {
-	                    e.printStackTrace();
-	                }
-
-	                in.close();
-			if (publisher != null)
-	                	publisher.close();           
+	        } catch (IOException exc) {
+	            
+	            exc.printStackTrace();
 	        }
 
-	        else if (reqId.compareTo(RacaNetworkProxy.MEDIATORPROXY_PUBLISH_TAG) == 0) {
-
-
-		    // only for binary msgs topicName is null
-	            topicName = RacaStringUtil.trimLocalJmsPrefix(topicName);
-
-	            String logMsg = (String) request.getParameter(RacaNetworkProxy.MEDIATORPROXY_LOG_MSG_TAG);
-
-	            RacaHttpPublisher publisher = new RacaHttpPublisher(topicName, null);
-
-	            
-	            publisher.publish(logMsg);
-	            
-	            publisher.close();
-
-	        }
+	        
+	        
 	    }
 
 	    @Override

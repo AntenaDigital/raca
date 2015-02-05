@@ -29,9 +29,6 @@ public class RacaNetworkProxy {
 
 	public static boolean NO_BUS_CONTROL_ = false;
 	
-	private String aspect_;
-
-	
 	public static String SERVERNAME = new String("localhost"); //"147.65.7.10"
 	public static String QUEUE_NAME = "QUEUE_NAME";
 	public static String TOPIC_NAME = "TOPIC_NAME";
@@ -190,8 +187,7 @@ public class RacaNetworkProxy {
 
 	public void log(String logMessage) {		
 		
-		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, logMessage);
-	
+		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, logMessage);	
 	}	
 	
 	
@@ -199,11 +195,9 @@ public class RacaNetworkProxy {
 	public void sendMasterRequest(String sessionID) {
 
 		// 		checa para ver se ja existe um MASTER
-		boolean gotMaster = checkMasterQueue(sessionID, attendee_.getClientID());
+		boolean gotMaster = checkMasterQueue(sessionID);
 
 		if (!gotMaster) {
-			
-			attendee_.sessions_.put(sessionID, true);
 			
 			// I AM THE MASTER NOW FOR SESSION ID...
 			ackMasterRequest(attendee_.getClientID(), sessionID);			
@@ -241,18 +235,10 @@ public class RacaNetworkProxy {
 
 		if (clientID.compareTo(attendee_.getClientID()) == 0) {
 			
-			// TODO : this should be a reconnect !
-			if (attendee_.isMaster(sessionID)) {
-				
-				// leaves the session as PUPIL
-				subsMasterAck(sessionID, clientID);				
-				
-			}else{	
-				
-				subsPupilAck(sessionID, clientID);
-			}
-
 			// and now BECOMES MASTER
+			attendee_.sessions_.put(sessionID, true);
+			
+
 			log("You are now being configured as MASTER for SESSION with ID : "+ sessionID + '\n');
 			
 			RacaNetworkDialog.instance().setTitle(RacaNetworkDialog.TITLE + "MASTER");
@@ -287,24 +273,29 @@ public class RacaNetworkProxy {
 			if (masterReqSubscriberThread_ == null) {
 				masterReqSubscriberThread_ = new RacaSubscriberThread(new RacaMasterRequestParser(sessionID, this.attendee_), sessionID, clientID);
 
-				// SETs THE MASTER_QUEUE EMPTY
-				masterReqSubscriberThread_.start();			
 
+				masterReqSubscriberThread_.start();
+				
+			}
+			
+			// SETs THE MASTER_QUEUE EMPTY
 			resetMasterQueue(sessionID, clientID);
 			updateMasterQueue(clientID, sessionID);
 
 			attendee_.setOnline(true);
 
-			} else
-				log(clientID + " has being acknowledged as MASTER for SESSION with ID : "+ sessionID + '\n');
-		}
+		} else
+			
+			// o novo mestre nao sou eu ... somente uma notificacao entao...
+			
+			log(clientID + " has being acknowledged as MASTER for SESSION with ID : "+ sessionID + '\n');
 
 	}
 
 	
-	public void ackPupilRequest(String clientID, String master_aspect, String sessionID, String colorPaint) {
+	public void ackPupilRequest(String clientID, String master_aspect, String sessionID, String color) {
 
-		log(clientID + " has being acknowledged as PUPIL of RACASESSION with ID : " + sessionID + '\n');
+		log(clientID + " has being acknowledged as PUPIL of RACA-SESSION with ID : " + sessionID + '\n');
 
 		if (clientID.compareTo(attendee_.getClientID()) == 0) {
 
@@ -322,15 +313,15 @@ public class RacaNetworkProxy {
 
 			commandSubscriberThread_.start();
 
-			log("You are now following RACASESSION with ID : " + sessionID + '\n');
+			log("You are now following RACA-SESSION with ID : " + sessionID + '\n');
 
 			RacaNetworkDialog.instance().setTitle(RacaNetworkDialog.TITLE + "PUPIL");
 
-			if (aspect_.compareTo(master_aspect) != 0)
+			if (attendee_.aspectRatio().compareTo(master_aspect) != 0)
 				JOptionPane.showMessageDialog(null,
 						"Please adjust your aspect ratio to " + master_aspect, "Aspect Warning", JOptionPane.WARNING_MESSAGE);
 
-			attendee_.setColor_(colorPaint);
+			attendee_.setColor(color);
 			attendee_.setOnline(true);
 		}
 
@@ -432,7 +423,7 @@ public class RacaNetworkProxy {
 	}
 
 	
-	public boolean checkMasterQueue(String sessionID, String clientID){
+	public boolean checkMasterQueue(String sessionID){
 		
 		/**
 		 * REQUESTS TO BECOME MASTER 
@@ -441,37 +432,15 @@ public class RacaNetworkProxy {
 		 */
 		boolean gotMaster = false;
 
-		if (masterCheckConsumer_ == null) {
-
-				log("WARN : a Http Polling context will be started...");
-				
-				try {
-					                                           // RacaSubscriberParser() -----------
-					masterCheckConsumer_ = new RacaHttpPoller(new RacaCommandParser(MASTER_QUEUE_NAME,sessionID),
-							RacaHttpPoller.buildSubscribeHitURL(MASTER_QUEUE_NAME + sessionID, sessionID), sessionID, clientID);
-
-				} catch (MalformedURLException e) {				
-					e.printStackTrace();
-					log("message err... "+ e.getMessage());
-				}
-				
-			} else
-				masterCheckConsumer_.stopsListening();
-		
-		masterCheckConsumer_ = null;
-
 		log("CHECK MASTER QUEUE has returned : " + gotMaster + " for RACA-SESSION with ID : " + sessionID + '\n');
 
 		return gotMaster;
-
 	}
 
 	
 	public void sendCommand(String commandDesc) {
 
 		commandPublisher_.publish(RacaStringUtil.trimURL(commandDesc));
-
-		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO,"Command successfully published was : " + commandDesc);
 
 		log("COMMAND EXECUTED : = "+ RacaStringUtil.extractCommandName(commandDesc));
 	}
@@ -481,7 +450,7 @@ public class RacaNetworkProxy {
 
 		commandPublisher_.publish(obj);
 
-		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, "Object successfully published ! ");
+		log("Object successfully published ! ");
 
 	}
 
@@ -503,6 +472,11 @@ public class RacaNetworkProxy {
             masterAckSubscriberThread_ = null;
         }
 
+		if (pupilAckSubscriberThread_ != null) {
+            pupilAckSubscriberThread_.unsubscribe();
+            pupilAckSubscriberThread_ = null;
+        }        
+        
         if (masterReqSubscriberThread_ != null) {
             masterReqSubscriberThread_.unsubscribe();
             masterReqSubscriberThread_ = null;
@@ -565,6 +539,13 @@ public class RacaNetworkProxy {
             pupilAckSubscriberThread_.unsubscribe();
             pupilAckSubscriberThread_ = null;
         }
+
+        if (masterAckSubscriberThread_ != null) {
+            masterAckSubscriberThread_.unsubscribe();
+            masterAckSubscriberThread_ = null;
+        }
+
+		
 		
 		try {
         

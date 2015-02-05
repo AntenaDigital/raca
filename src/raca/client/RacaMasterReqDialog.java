@@ -16,7 +16,7 @@ import java.net.MalformedURLException;
 
 /**
  *
- * <p>The dialog used to switch MASTER control to a Slave user on a RPN SESSION </p>
+ * <p>The dialog used to switch MASTER control to a Pupil user on a RACA SESSION </p>
  */
 public class RacaMasterReqDialog extends JDialog {
 

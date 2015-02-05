@@ -19,6 +19,11 @@ import javax.servlet.http.HttpServletResponse;
 */
 public class RacaMediatorProxy extends HttpServlet implements ServletContextListener {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3L;
+	
 	public static String WRONG_INPUT_ERROR_MSG = "WRONG INPUT PARAMETERS...";
     public static String RECEIVER_INITIALIZATION_ERROR_MSG = "RECEIVER NOT INITIALIZED...";
     public static String QUEUECONNECTION_CLOSE_ERROR_MSG = "WAS UNABLE TO CLOSE QUEUE CONNECTION...";

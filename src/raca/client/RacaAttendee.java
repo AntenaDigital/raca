@@ -14,16 +14,18 @@ public class RacaAttendee {
 
 	private RacaNetworkProxy proxy_ = null;	
 	private String clientID_;		
-	private String color_;		
+	private String color_;	
+	private String aspect_;
 	
 	private boolean isOnline_ = false;
 
 	Map<String, Boolean> sessions_ = new HashMap<String, Boolean>();
 	
-	public RacaAttendee(String clientID, String color){
+	public RacaAttendee(String clientID, String color, String aspect){
 		
-		this.clientID_ = clientID;
-		this.color_ = color;		
+		this.clientID_ = clientID.toString();
+		this.color_ = color.toString();
+		this.aspect_ = aspect.toString();
 		proxy_ = new RacaNetworkProxy(this);
 	
 	}	
@@ -58,10 +60,14 @@ public class RacaAttendee {
 		return color_;
 	}
 	
-	public void setColor_(String color) {
+	public void setColor(String color) {
 		this.color_ = color;
 	}
 	
+	public String aspectRatio() {
+		return aspect_;
+	}
+
 	public RacaNetworkProxy getProxy_() {
 		return proxy_;
 	}	
@@ -69,13 +75,17 @@ public class RacaAttendee {
 	public void joinSession(String sessionID) throws MalformedURLException {
 		
 		proxy_.subsPupilAck(sessionID, getClientID());		
+		proxy_.subsMasterAck(sessionID, getClientID());
+		
 		proxy_.sendPupilRequest(sessionID);		
 		
 	}	
 	
 	public void joinSessionAsMaster(String sessionID) throws MalformedURLException {
 
+		proxy_.subsPupilAck(sessionID, getClientID());
 		proxy_.subsMasterAck(sessionID, getClientID());
+		
 		proxy_.sendMasterRequest(sessionID);			
 
 	}

@@ -2,7 +2,10 @@ package raca.client;
 
 import raca.util.client.RacaStringUtil;
 
-
+/**
+*
+* @author ANTENA DIGITAL
+*/
 public class RacaMasterRequestParser implements RacaMessageParser {
 
 	private String topicName_ = RacaNetworkProxy.MASTER_REQUEST_LOG_MSG; 

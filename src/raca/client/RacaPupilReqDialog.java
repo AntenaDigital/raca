@@ -1,25 +1,23 @@
-/*
- * Instituto de Matematica Pura e Aplicada - IMPA
- * Departamento de Dinamica dos Fluidos
- *
- */
-
 package raca.client;
 
 
 import java.awt.*;
+
 import javax.swing.*;
-import javax.swing.JDialog;
+
 import java.awt.event.*;
 
 /**
- *
- * <p>The dialog used to grant permission to a Slave user to take part on a RPN SESSION </p>
- */
+*
+* @author ANTENA DIGITAL
+*/
+
 public class RacaPupilReqDialog extends JDialog {
 
 	private String clientID;
-
+	private String sessionID_;
+	private RacaAttendee attendee_ = null;
+	
 	JPanel mainPanel = new JPanel();    
 	JPanel infoPanel = new JPanel();    
 	JPanel buttonsPanel = new JPanel();    
@@ -36,11 +34,12 @@ public class RacaPupilReqDialog extends JDialog {
 	public JLabel infoLabel = new JLabel("A request for joining the session has arrived from : ");
 
 
-	public RacaPupilReqDialog(String reqClientID) {
+	public RacaPupilReqDialog(String reqClientID, RacaAttendee attendee, String sessionID) {
 
+		
 		try {
 
-			init(reqClientID);
+			init(reqClientID, attendee, sessionID);
 
 			setLocationRelativeTo(null);
 
@@ -50,13 +49,14 @@ public class RacaPupilReqDialog extends JDialog {
 	}
 
 
-	private void init(String reqClientID) throws Exception {
-
+	private void init(String reqClientID, RacaAttendee attendee, String sessionID) throws Exception {
 
 		clientID = new String(reqClientID);
+		attendee_ = attendee;
+		sessionID_ = new String(sessionID);
 
 		setResizable(false);
-		setTitle("RPn Session Access Grant");
+		setTitle("Raca Session Access Grant");
 
 		//MKPCommandModule.PEN_COLOR_MAP.put(clientID,"Blue");
 
@@ -118,9 +118,9 @@ public class RacaPupilReqDialog extends JDialog {
 
 	void allowButton_actionPerformed(ActionEvent e) {
 
-		RacaHttpPublisher publisher = new RacaHttpPublisher(RacaNetworkProxy.PUPIL_ACK_TOPIC_NAME, "sessionID");
+		RacaHttpPublisher publisher = new RacaHttpPublisher(RacaNetworkProxy.PUPIL_ACK_TOPIC_NAME, sessionID_);
 
-		//publisher.publish(RacaNetworkProxy.PUPIL_ACK_LOG_MSG + '|' + clientID + '|' + RacaNetworkProxy.instance().aspectRatio() + '|' + colorChosen);
+		publisher.publish(RacaNetworkProxy.PUPIL_ACK_LOG_MSG + '|' + clientID + '|' + attendee_.aspectRatio() + '|' + attendee_.getColor_());
 
 		publisher.close();
 
