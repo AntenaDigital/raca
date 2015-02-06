@@ -116,10 +116,10 @@ public class RacaHttpPoller implements RacaMessageListener{
 				URLConnection racaMediatorConn = racaMediatorURL.openConnection();			
 				
 				ObjectInputStream in = null;
-				InputStream input = racaMediatorConn.getInputStream();				
+				//InputStream input = racaMediatorConn.getInputStream();				
 				
 				// Tentando fugir do disparo da Exception ------				
-				if(!input.equals(null)){
+				if(!racaMediatorConn.getInputStream().equals(null)){
 					
 					in = new ObjectInputStream(racaMediatorConn.getInputStream());
 					

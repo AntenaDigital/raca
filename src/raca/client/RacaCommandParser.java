@@ -18,7 +18,7 @@ public class RacaCommandParser implements RacaMessageParser {
 	
 	public String topicName() {
 		
-		return topicName_;
+		return topicName_ + sessionID_;
 	}
 	
 	public String hitURL() {

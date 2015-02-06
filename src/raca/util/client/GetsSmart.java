@@ -12,10 +12,10 @@ public class GetsSmart {
 		
 		String sessao = "5401";
 				
-		RacaAttendee attendee1 = new RacaAttendee("9090", "black", "680 420");		
+		RacaAttendee attendee1 = new RacaAttendee("0298", "black", "680 420");		
 		attendee1.joinSessionAsMaster(sessao);
 		
-		RacaAttendee attendee2 = new RacaAttendee("9090", "blue", "680 420");
+		RacaAttendee attendee2 = new RacaAttendee("1209", "blue", "680 420");
 		attendee2.joinSession(sessao);
 	}
 
