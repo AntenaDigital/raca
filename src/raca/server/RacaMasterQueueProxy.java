@@ -3,6 +3,8 @@ package raca.server;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -22,6 +24,8 @@ public class RacaMasterQueueProxy extends RacaMediatorProxy {
 
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, "Servlet MasterQueueProxy foi requerido...");
+		
 		String reqID = request.getParameter(RacaNetworkProxy.MEDIATORPROXY_REQ_ID_TAG);
 		String clientID = request.getParameter(RacaNetworkProxy.MEDIATORPROXY_CLIENT_ID_TAG);
 

@@ -114,6 +114,7 @@ public class RacaHttpPoller implements RacaMessageListener{
 
 				racaMediatorURL = new URL(objCommandURL);				
 				URLConnection racaMediatorConn = racaMediatorURL.openConnection();			
+				racaMediatorConn.setRequestProperty("Accept-Charset", "UTF-8");
 				
 				ObjectInputStream in = null;
 				//InputStream input = racaMediatorConn.getInputStream();				

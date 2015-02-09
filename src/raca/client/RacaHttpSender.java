@@ -54,7 +54,7 @@ public class RacaHttpSender {
     		
     		BufferedReader buffReader = new BufferedReader(new InputStreamReader(racaMediatorConn.getInputStream()));
     		
-    		String text;
+    		String text = new String();
  
     		/*
     		StringBuffer fullText = new StringBuffer();

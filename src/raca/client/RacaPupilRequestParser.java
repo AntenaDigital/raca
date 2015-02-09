@@ -8,7 +8,7 @@ import raca.util.client.RacaStringUtil;
 */
 public class RacaPupilRequestParser implements RacaMessageParser {
 
-	private String topicName_ = RacaNetworkProxy.PUPIL_REQ_LOG_MSG;
+	private String topicName_ = RacaNetworkProxy.PUPIL_REQ_QUEUE_NAME;      //PUPIL_REQ_LOG_MSG
 	private String sessionID_;
 	private RacaAttendee attendee_ = null;
 	

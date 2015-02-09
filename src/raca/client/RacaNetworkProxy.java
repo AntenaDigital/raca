@@ -370,12 +370,13 @@ public class RacaNetworkProxy {
 
 				URL racaMediatorURL = new URL(MEDIATORPROXY_URL	+ "racamasterqueueproxy" + "?"+ MEDIATORPROXY_REQ_ID_TAG + '='
 						+ MEDIATORPROXY_MASTER_UPDATE_TAG + "&"	+ MEDIATORPROXY_CLIENT_ID_TAG
-						+ '=' + clientID);
-
+						+ '=' + clientID);				
+				
 				URLConnection racaMediatorConn = racaMediatorURL.openConnection();
 				
 				BufferedReader buffReader = new BufferedReader(new InputStreamReader(racaMediatorConn.getInputStream()));
-
+				// na linha acima estora um ERROR...: Server returned HTTP response code: 500
+				
 				/*
 				StringBuffer fullText = new StringBuffer();
 				Boolean buffFlag = false;*/
