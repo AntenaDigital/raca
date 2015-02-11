@@ -78,15 +78,25 @@ public class RacaAttendee {
 		proxy_.subsMasterAck(sessionID, getClientID());
 		
 		proxy_.sendPupilRequest(sessionID);		
+		proxy_.sendMasterRequest(sessionID);
+		
+		proxy_.sendCommand("espero que servlet receba isso...");
+		this.quitSession(sessionID);
 		
 	}	
 	
 	public void joinSessionAsMaster(String sessionID) throws MalformedURLException {
 
+		this.sessions_.put(sessionID, null);
+		
 		proxy_.subsPupilAck(sessionID, getClientID());
 		proxy_.subsMasterAck(sessionID, getClientID());
 		
-		proxy_.sendMasterRequest(sessionID);			
+		proxy_.sendMasterRequest(sessionID);
+		
+		proxy_.sendCommand("um trecho qualquer...");
+		
+		
 
 	}
 

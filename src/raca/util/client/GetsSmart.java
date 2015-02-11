@@ -14,9 +14,12 @@ public class GetsSmart {
 				
 		RacaAttendee attendee1 = new RacaAttendee("0298", "black", "680 420");		
 		attendee1.joinSessionAsMaster(sessao);
+	
 		
 		RacaAttendee attendee2 = new RacaAttendee("1209", "blue", "680 420");
 		attendee2.joinSession(sessao);
+		
+		
 	}
 
 }

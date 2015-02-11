@@ -24,49 +24,11 @@ public class RacaMasterQueueProxy extends RacaMediatorProxy {
 
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, "Servlet MasterQueueProxy foi requerido...");
 		
-		String reqID = request.getParameter(RacaNetworkProxy.MEDIATORPROXY_REQ_ID_TAG);
-		String clientID = request.getParameter(RacaNetworkProxy.MEDIATORPROXY_CLIENT_ID_TAG);
+		String reqID_ = request.getParameter(RacaNetworkProxy.MEDIATORPROXY_REQ_ID_TAG);
+		String clientID_ = request.getParameter(RacaNetworkProxy.MEDIATORPROXY_CLIENT_ID_TAG);
 
-		RacaNetworkProxy proxy_ = null;
-		proxy_.log("Recebi uma visita  :"+clientID);
+		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, "Servlet MasterQueueProxy foi requerido...pelo " + clientID_ + "||" + reqID_);
 		
-		PrintWriter write = response.getWriter();
-
-		if (reqID == null)
-			write.print("REQ_ID (null) :" + reqID );           
-
-		else if (reqID.compareTo(RacaNetworkProxy.MEDIATORPROXY_MASTER_CHECK_TAG) == 0) {
-
-			// this will enable the browser output...
-			response.setContentType( "text/xml;charset=UTF-8" );
-
-			PrintWriter writer = response.getWriter();
-
-			if (masterLog_.isEmpty()) {
-				// for DEBUGING
-				System.out.println("No Master registered for RPN SESSION...");
-				writer.println("0");
-
-			}
-			else {
-				// for DEBUGING
-				System.out.println("Got Master registered for RPN SESSION...");
-				writer.println("1");
-			}
-
-		} else if (reqID.compareTo(RacaNetworkProxy.MEDIATORPROXY_MASTER_UPDATE_TAG) == 0) {
-
-			// for DEBUGING
-			System.out.println("Master is being registered for RPN SESSION...");
-			masterLog_.add(clientID);
-
-		} else if (reqID.compareTo(RacaNetworkProxy.MEDIATORPROXY_MASTER_RESET_TAG) == 0) {
-
-			// for DEBUGING
-			System.out.println("Master is being unregistered for RPN SESSION...");
-			masterLog_.removeAllElements();
-		}    	
 	}
 }

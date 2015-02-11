@@ -388,6 +388,7 @@ public class RacaNetworkProxy {
 
 			}catch (Exception exc) {
 				exc.printStackTrace();
+				System.out.println("message...: " + exc.getMessage());
 			}
 	}
 
@@ -431,8 +432,9 @@ public class RacaNetworkProxy {
 		 * WILL BE A QUICK ACCESS METHOD TO THE
 		 * MASTER_QUEUE
 		 */
+		
 		boolean gotMaster = false;
-
+		
 		log("CHECK MASTER QUEUE has returned : " + gotMaster + " for RACA-SESSION with ID : " + sessionID + '\n');
 
 		return gotMaster;
