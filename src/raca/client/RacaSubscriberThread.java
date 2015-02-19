@@ -1,5 +1,9 @@
 package raca.client;
 
+import java.net.MalformedURLException;
+
+import raca.util.client.RacaLogUtil;
+
 /**
 *
 * @author ANTENA DIGITAL
@@ -7,20 +11,13 @@ package raca.client;
 public class RacaSubscriberThread extends Thread{
 
 	private RacaMessageListener subscriber_ = null;
+	private RacaNetworkProxy proxy_ = null;
 	
-	public RacaSubscriberThread(RacaMessageParser parser, String sessionID, String clientID){
+	public RacaSubscriberThread(RacaMessageParser parser, String sessionID, String clientID) throws MalformedURLException{
 
-		try {
-			System.out.println("WARN : a Http Polling context will be started...");            
+		RacaLogUtil.log("WARN : a Http Polling context will be started...");            
 
-			subscriber_ = new RacaHttpPoller(parser,
-											 RacaHttpPoller.buildSubscribeHitURL(parser.topicName(), sessionID),
-											 sessionID, clientID);       
-
-		} catch (java.net.MalformedURLException ex) {
-
-			ex.printStackTrace();
-		}
+		subscriber_ = new RacaHttpPoller(parser,sessionID, clientID);
 	}	
 
 	public void run() {

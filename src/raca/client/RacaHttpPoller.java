@@ -8,6 +8,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
+import raca.util.client.RacaLogUtil;
+import raca.util.client.RacaStringUtil;
+
 /**
 *
 * @author ANTENA DIGITAL
@@ -27,52 +30,12 @@ public class RacaHttpPoller implements RacaMessageListener{
 	private String hitURL_ = null;
 	private boolean end_ = false;
 
-	public RacaHttpPoller(RacaMessageParser parser, String hitURL, String sessionID, String clientID){
+	public RacaHttpPoller(RacaMessageParser parser, String sessionID, String clientID) throws MalformedURLException{
 
 		parser_ = parser;
-		hitURL_ = hitURL.toString();
+		hitURL_ = parser.hitURL();
 		clientID_ = clientID.toString();
 		sessionID_ = sessionID.toString();
-	}
-
-	public static String buildSubscribeHitURL(String hitTarget, String sessionID) throws MalformedURLException{
-
-		if (hitTarget.startsWith(RacaNetworkProxy.MASTER_COMMAND_TOPIC_NAME + sessionID)) {
-
-			return RacaNetworkProxy.MEDIATORPROXY_URL + "racamastercommandproxy";
-
-
-		} else if (hitTarget.startsWith(RacaNetworkProxy.PUPIL_COMMAND_TOPIC_NAME + sessionID)) {
-
-			return RacaNetworkProxy.MEDIATORPROXY_URL + "racapupilcommandproxy";
-
-
-		} else if (hitTarget.startsWith(RacaNetworkProxy.MASTER_ACK_TOPIC_NAME + sessionID)) {
-
-			return RacaNetworkProxy.MEDIATORPROXY_URL + "racamasterackproxy";
-
-
-		} else if (hitTarget.startsWith(RacaNetworkProxy.MASTER_REQ_TOPIC_NAME + sessionID)) {
-
-			return RacaNetworkProxy.MEDIATORPROXY_URL + "racamasterreqproxy";
-
-
-		} else if (hitTarget.startsWith(RacaNetworkProxy.PUPIL_ACK_TOPIC_NAME + sessionID)) {
-
-			return RacaNetworkProxy.MEDIATORPROXY_URL + "racapupilackproxy";
-
-
-		} else if (hitTarget.startsWith(RacaNetworkProxy.PUPIL_REQ_QUEUE_NAME + sessionID)) {
-
-			return RacaNetworkProxy.MEDIATORPROXY_URL + "racapupilreqproxy";
-
-
-		} else if (hitTarget.startsWith(RacaNetworkProxy.MASTER_QUEUE_NAME + sessionID)) {
-
-			return RacaNetworkProxy.MEDIATORPROXY_URL + "racamasterqueueproxy";
-
-		} else throw new java.net.MalformedURLException();
-
 	}
 
 	public static String builCommanddHitURL(String mode, String hitTarget, String sessionID) throws MalformedURLException{
@@ -108,12 +71,15 @@ public class RacaHttpPoller implements RacaMessageListener{
 
 				String objCommandURL = new String(hitURL_ + "?" + RacaNetworkProxy.MEDIATORPROXY_REQ_ID_TAG + '=' +
 						RacaNetworkProxy.MEDIATORPROXY_NOTEBOARD_POLL_TAG + '&' +
-						RacaNetworkProxy.MEDIATORPROXY_CLIENT_ID_TAG + '=' + clientID_);
+						RacaNetworkProxy.MEDIATORPROXY_CLIENT_ID_TAG + '=' + clientID_ + '&' + sessionID_);
 
 				URL racaMediatorURL;
 
+				RacaLogUtil.log(objCommandURL);
+				
 				racaMediatorURL = new URL(objCommandURL);				
 				URLConnection racaMediatorConn = racaMediatorURL.openConnection();			
+				
 				racaMediatorConn.setRequestProperty("Accept-Charset", "UTF-8");
 				
 				ObjectInputStream in = null;
@@ -128,11 +94,8 @@ public class RacaHttpPoller implements RacaMessageListener{
 				
 				}else{
 					
-					System.out.print("WARN : Mudando a rota, pois o objeto está vazio");
-					
-					attendee_.joinSession(this.sessionID_);
-					
-					
+					System.out.print("WARN : Mudando a rota, pois o objeto está vazio");					
+					attendee_.joinSession(this.sessionID_);					
 				}
 			}
 

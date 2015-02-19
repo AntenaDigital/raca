@@ -30,15 +30,12 @@ public class RacaMasterPublishProxy extends RacaMediatorProxy {
 	@Override
 	    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		
-	        String reqID_ = (String) request.getParameter(RacaNetworkProxy.MEDIATORPROXY_REQ_ID_TAG);
-	        String clientID_ = (String) request.getParameter(RacaNetworkProxy.MEDIATORPROXY_CLIENT_ID_TAG);
-	        String topicName_ = (String) request.getParameter(RacaNetworkProxy.TOPIC_NAME);
-	        
+			Object obj = new Object();
+			
 	        ObjectInputStream in = new ObjectInputStream(request.getInputStream());
 	        try {
 	        	
-				Object obj = in.readObject();
+				obj = in.readObject();
 				
 			} catch (ClassNotFoundException e) {
 				
@@ -47,7 +44,7 @@ public class RacaMasterPublishProxy extends RacaMediatorProxy {
 				  
 			}
 	        
-	        Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, "Servlet MasterPublishProxy foi requerido...pelo " + clientID_ + "||" + reqID_ + "||" + topicName_);
+	        Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, "Servlet MasterPublishProxy recebeu um command :" + obj.toString());
 	    }
 
 	    @Override

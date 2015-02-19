@@ -6,13 +6,16 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
+import raca.util.client.RacaLogUtil;
+import raca.util.client.RacaStringUtil;
+
 
 /**
 *
 * @author ANTENA DIGITAL
 */
 public class RacaHttpSender {
-	
+
 	private String hitURL_ = null;
     private String queueName_ = null;
 
@@ -27,7 +30,7 @@ public class RacaHttpSender {
         } catch (MalformedURLException e) {
         	
 			e.printStackTrace();
-			System.err.println("message...:" + e.getMessage());
+			RacaLogUtil.log("message...:" + e.getMessage());
 		}
     
     }
@@ -42,7 +45,7 @@ public class RacaHttpSender {
     				+ '&' + RacaNetworkProxy.MEDIATORPROXY_CLIENT_ID_TAG + '=' + clientID.toString()
     				+ '&' + RacaNetworkProxy.MEDIATORPROXY_LOG_MSG_TAG + '=' + msg.toString());
 
-    		System.out.println("The URL message to be sent is : " + fullURL);
+    		RacaLogUtil.log("The URL message to be sent is : " + fullURL);
 
     		URL racaMediatorURL = new URL(fullURL);
 
@@ -67,6 +70,7 @@ public class RacaHttpSender {
     	} catch (Exception exc) {
 
     		exc.printStackTrace();
+    		RacaLogUtil.log("message :" + exc.getMessage());
 
     	}    	
     }

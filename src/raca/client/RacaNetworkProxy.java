@@ -1,5 +1,6 @@
 package raca.client;
 
+import raca.util.client.RacaLogUtil;
 import raca.util.client.RacaStringUtil;
 
 import java.io.BufferedReader;
@@ -178,19 +179,12 @@ public class RacaNetworkProxy {
 		return "NEW SESSION ID";
 	}
 	
-
 	public RacaNetworkProxy(RacaAttendee attendee) {		
 		
 		this.attendee_ = attendee;			
 	
 	}	
 
-	public void log(String logMessage) {		
-		
-		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, logMessage);	
-	}	
-	
-	
 	// 		envia pedido para se tornar MASTER	
 	public void sendMasterRequest(String sessionID) {
 
@@ -200,7 +194,15 @@ public class RacaNetworkProxy {
 		if (!gotMaster) {
 			
 			// I AM THE MASTER NOW FOR SESSION ID...
-			ackMasterRequest(attendee_.getClientID(), sessionID);			
+			try {
+				
+				ackMasterRequest(attendee_.getClientID(), sessionID);
+				
+			} catch (MalformedURLException e) {
+				
+				e.printStackTrace();
+				RacaLogUtil.log(e.getMessage());
+			}			
 			
 		} else {
 
@@ -210,7 +212,7 @@ public class RacaNetworkProxy {
 
 			masterRequestPublisher_.publish(MASTER_REQUEST_LOG_MSG + '|'+ attendee_.getClientID(), attendee_.getClientID());
 
-			log(attendee_.getClientID() + " has requested MASTER lock for SESSION with ID : "	+ sessionID + '\n');
+			RacaLogUtil.log(attendee_.getClientID() + " has requested MASTER lock for SESSION with ID : "	+ sessionID + '\n');
 
 		}
 
@@ -227,19 +229,23 @@ public class RacaNetworkProxy {
 
 		pupilRequestSender_.send(PUPIL_REQ_LOG_MSG + '|' + attendee_.getClientID(), attendee_.getClientID());
 		
-		log("Pupil request sent !!!");
+		RacaLogUtil.log("Pupil request sent !!!");
 	}
 	
 	
-	public void ackMasterRequest(String clientID, String sessionID) {
+	public void ackMasterRequest(String clientID, String sessionID) throws MalformedURLException {
 
 		if (clientID.compareTo(attendee_.getClientID()) == 0) {
 			
 			// and now BECOMES MASTER
 			attendee_.sessions_.put(sessionID, true);
 			
+			
+			subsPupilAck(sessionID, clientID);
+			subsMasterAck(sessionID, clientID);
 
-			log("You are now being configured as MASTER for SESSION with ID : "+ sessionID + '\n');
+
+			RacaLogUtil.log("You are now being configured as MASTER for SESSION with ID : "+ sessionID + '\n');
 			
 			RacaNetworkDialog.instance().setTitle(RacaNetworkDialog.TITLE + "MASTER");
 
@@ -288,14 +294,14 @@ public class RacaNetworkProxy {
 			
 			// o novo mestre nao sou eu ... somente uma notificacao entao...
 			
-			log(clientID + " has being acknowledged as MASTER for SESSION with ID : "+ sessionID + '\n');
+			RacaLogUtil.log(clientID + " has being acknowledged as MASTER for SESSION with ID : "+ sessionID + '\n');
 
 	}
 
 	
-	public void ackPupilRequest(String clientID, String master_aspect, String sessionID, String color) {
+	public void ackPupilRequest(String clientID, String master_aspect, String sessionID, String color) throws MalformedURLException {
 
-		log(clientID + " has being acknowledged as PUPIL of RACA-SESSION with ID : " + sessionID + '\n');
+		RacaLogUtil.log(clientID + " has being acknowledged as PUPIL of RACA-SESSION with ID : " + sessionID + '\n');
 
 		if (clientID.compareTo(attendee_.getClientID()) == 0) {
 
@@ -313,7 +319,7 @@ public class RacaNetworkProxy {
 
 			commandSubscriberThread_.start();
 
-			log("You are now following RACA-SESSION with ID : " + sessionID + '\n');
+			RacaLogUtil.log("You are now following RACA-SESSION with ID : " + sessionID + '\n');
 
 			RacaNetworkDialog.instance().setTitle(RacaNetworkDialog.TITLE + "PUPIL");
 
@@ -328,26 +334,26 @@ public class RacaNetworkProxy {
 	}
 
 	
-	public void subsMasterAck(String sessionID, String clientID) {
+	public void subsMasterAck(String sessionID, String clientID) throws MalformedURLException {
 
 		if (masterAckSubscriberThread_ == null)
 			masterAckSubscriberThread_ = new RacaSubscriberThread(new RacaMasterAckParser(sessionID, this), sessionID, clientID);
 
 		masterAckSubscriberThread_.start();
 
-		log("Will be listening to MASTER ACK now...");
+		RacaLogUtil.log("Will be listening to MASTER ACK now...");
 
 	}
 
 	
-	public void subsPupilAck(String sessionID, String clientID) {
+	public void subsPupilAck(String sessionID, String clientID) throws MalformedURLException {
 
 		if (pupilAckSubscriberThread_ == null)
 			pupilAckSubscriberThread_ = new RacaSubscriberThread(new RacaPupilAckParser(sessionID, this), sessionID, clientID);
 
 		pupilAckSubscriberThread_.start();
 
-		log("Will be listening to PUPIL ACK now...");
+		RacaLogUtil.log("Will be listening to PUPIL ACK now...");
 
 	}
 
@@ -366,7 +372,7 @@ public class RacaNetworkProxy {
 
 			try {
 
-				log("Will now hit RACA Mediator URL..." + '\n');
+				RacaLogUtil.log("Will now hit RACA Mediator URL..." + '\n');
 
 				URL racaMediatorURL = new URL(MEDIATORPROXY_URL	+ "racamasterqueueproxy" + "?"+ MEDIATORPROXY_REQ_ID_TAG + '='
 						+ MEDIATORPROXY_MASTER_UPDATE_TAG + "&"	+ MEDIATORPROXY_CLIENT_ID_TAG
@@ -388,7 +394,7 @@ public class RacaNetworkProxy {
 
 			}catch (Exception exc) {
 				exc.printStackTrace();
-				System.out.println("message...: " + exc.getMessage());
+				RacaLogUtil.log("message...: " + exc.getMessage());
 			}
 	}
 
@@ -399,17 +405,38 @@ public class RacaNetworkProxy {
 
 		if (masterResetConsumer_ == null){
 
-			log("WARN : a Http Polling context will be started...");
+			RacaLogUtil.log("WARN : a Http Polling context will be started...");
+			
+			try {				
+
+				URL racaMediatorURL = new URL(MEDIATORPROXY_URL	+ "racamasterqueueproxy" + "?"+ MEDIATORPROXY_REQ_ID_TAG + '='
+						+ MEDIATORPROXY_MASTER_RESET_TAG + "&"	+ MEDIATORPROXY_CLIENT_ID_TAG
+						+ '=' + clientID);				
+				
+				URLConnection racaMediatorConn = racaMediatorURL.openConnection();
+				
+				BufferedReader buffReader = new BufferedReader(new InputStreamReader(racaMediatorConn.getInputStream()));
+				
+				String text = new String();
+				while ((text = buffReader.readLine()) != null) {
+
+				}
+
+			}catch (Exception exc) {
+				exc.printStackTrace();
+				RacaLogUtil.log("message...: " + exc.getMessage());
+			}
+
 
 			try {
-					                                       // RacaSubscriberParser() ---------
-				masterResetConsumer_ = new RacaHttpPoller(new RacaCommandParser(MASTER_QUEUE_NAME,sessionID),
-									RacaHttpPoller.buildSubscribeHitURL(MASTER_QUEUE_NAME + sessionID, sessionID), sessionID, clientID);
+					                                       
+				masterResetConsumer_ = new RacaHttpPoller(new RacaMasterResetParser(sessionID, this), sessionID, clientID);
+				
       
 			} catch (MalformedURLException e) {
 
 				e.printStackTrace();
-				log("message erro...: "+ e.getMessage());
+				RacaLogUtil.log("message erro...: "+ e.getMessage());
 			}
 
 		} else
@@ -420,7 +447,7 @@ public class RacaNetworkProxy {
 		
 		masterResetConsumer_ = null;
 		
-		log("MASTER QUEUE has being reset...");
+		RacaLogUtil.log("MASTER QUEUE has being reset...");
 
 	}
 
@@ -435,7 +462,30 @@ public class RacaNetworkProxy {
 		
 		boolean gotMaster = false;
 		
-		log("CHECK MASTER QUEUE has returned : " + gotMaster + " for RACA-SESSION with ID : " + sessionID + '\n');
+		RacaLogUtil.log("CHECK MASTER QUEUE has returned : " + gotMaster + " for RACA-SESSION with ID : " + sessionID + '\n');
+		
+		try {
+
+			RacaLogUtil.log("Will now hit RACA Mediator URL..." + '\n');
+
+			URL racaMediatorURL = new URL(MEDIATORPROXY_URL	+ "racamasterqueueproxy" + "?"+ MEDIATORPROXY_REQ_ID_TAG + '='
+					+ MEDIATORPROXY_MASTER_CHECK_TAG + "&"	+ MEDIATORPROXY_CLIENT_ID_TAG
+					+ '=' + sessionID);				
+			
+			URLConnection racaMediatorConn = racaMediatorURL.openConnection();
+			
+			BufferedReader buffReader = new BufferedReader(new InputStreamReader(racaMediatorConn.getInputStream()));
+			
+			String text = new String();
+			while ((text = buffReader.readLine()) != null) {
+
+			}
+
+		}catch (Exception exc) {
+			exc.printStackTrace();
+			RacaLogUtil.log("message...: " + exc.getMessage());
+		}
+
 
 		return gotMaster;
 	}
@@ -445,15 +495,15 @@ public class RacaNetworkProxy {
 
 		commandPublisher_.publish(RacaStringUtil.trimURL(commandDesc));
 
-		log("COMMAND EXECUTED : = "+ RacaStringUtil.extractCommandName(commandDesc));
+		RacaLogUtil.log("COMMAND EXECUTED : = "+ RacaStringUtil.extractCommandName(commandDesc));
 	}
 
-	
+		
 	public void sendCommand(Object obj) {
 
 		commandPublisher_.publish(obj);
 
-		log("Object successfully published ! ");
+		RacaLogUtil.log("Object successfully published ! ");
 
 	}
 
@@ -515,7 +565,7 @@ public class RacaNetworkProxy {
                 ex.printStackTrace();
             }
 
-            log("All Connections closed for MASTER session ...");
+            RacaLogUtil.log("All Connections closed for MASTER session ...");
             // TODO notify that SESSION has no MASTER now...
                    
         		
@@ -559,7 +609,7 @@ public class RacaNetworkProxy {
             ex.printStackTrace();
         }
 		
-            log("All Connections closed for SLAVE session ...");   
+            RacaLogUtil.log("All Connections closed for SLAVE session ...");   
 
 	}
 

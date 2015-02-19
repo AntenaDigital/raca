@@ -1,10 +1,16 @@
 package raca.client;
 
+import java.net.MalformedURLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import raca.util.client.RacaLogUtil;
 import raca.util.client.RacaStringUtil;
 
+/**
+*
+* @author ANTENA DIGITAL
+*/
 public class RacaPupilAckParser implements RacaMessageParser{
 
 	protected boolean end_ = false;	
@@ -28,12 +34,18 @@ public class RacaPupilAckParser implements RacaMessageParser{
 
 			if (text.startsWith(topicName_)) {          
 
-				Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, "Will now ack slave req...");
+				RacaLogUtil.log("Will now ack slave req...");
 				
-				proxy_.ackPupilRequest(RacaStringUtil.filterClientID(text),
-									RacaStringUtil.filterAspectRatio(text), 
-									sessionID_,
-									RacaStringUtil.filterPupilColor(text));
+				try {
+					proxy_.ackPupilRequest(RacaStringUtil.filterClientID(text),
+										RacaStringUtil.filterAspectRatio(text), 
+										sessionID_,
+										RacaStringUtil.filterPupilColor(text));
+					
+				} catch (MalformedURLException e) {
+					
+					e.printStackTrace();
+				}
 			}
 		}
 
@@ -42,14 +54,17 @@ public class RacaPupilAckParser implements RacaMessageParser{
 	@Override
 	public String topicName() {
 
-		return topicName_ + sessionID_;
+		return topicName_;
 	}
 
 	@Override
-	public String hitURL() {
+	public String hitURL() throws MalformedURLException{		
 		
-		return topicName_ + sessionID_;
-	}
+		if (!topicName_.startsWith(RacaNetworkProxy.PUPIL_ACK_TOPIC_NAME))
+			throw new MalformedURLException();
+			
+		return RacaNetworkProxy.MEDIATORPROXY_URL + "racapupilackproxy";
 
+	}
 	
 }

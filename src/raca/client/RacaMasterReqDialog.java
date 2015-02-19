@@ -1,11 +1,4 @@
-/*
- * Instituto de Matematica Pura e Aplicada - IMPA
- * Departamento de Dinamica dos Fluidos
- *
- */
-
 package raca.client;
-
 
 import java.awt.*;
 
@@ -15,9 +8,9 @@ import java.awt.event.*;
 import java.net.MalformedURLException;
 
 /**
- *
- * <p>The dialog used to switch MASTER control to a Pupil user on a RACA SESSION </p>
- */
+*
+* @author ANTENA DIGITAL
+*/
 public class RacaMasterReqDialog extends JDialog {
 
 	private String sessionID_;

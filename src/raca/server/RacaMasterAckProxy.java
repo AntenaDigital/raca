@@ -29,8 +29,7 @@ public class RacaMasterAckProxy extends RacaMediatorProxy {
 		
 		
 		String reqID_ = request.getParameter(RacaNetworkProxy.MEDIATORPROXY_REQ_ID_TAG);
-		String clientID_ = request.getParameter(RacaNetworkProxy.MEDIATORPROXY_CLIENT_ID_TAG);            
-        
+		String clientID_ = request.getParameter(RacaNetworkProxy.MEDIATORPROXY_CLIENT_ID_TAG);        
 		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, "Servlet MasterAckProxy foi requerido...  pelo " + clientID_ + "||" + reqID_);
     				
 	}

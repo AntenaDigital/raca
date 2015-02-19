@@ -3,6 +3,10 @@ package raca.client;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+*
+* @author ANTENA DIGITAL
+*/
 public class RacaCommandParser implements RacaMessageParser {	
 	
 	protected boolean end_ = false;	
@@ -18,12 +22,19 @@ public class RacaCommandParser implements RacaMessageParser {
 	
 	public String topicName() {
 		
-		return topicName_ + sessionID_;
+		return topicName_;
 	}
 	
 	public String hitURL() {
 		
-		return topicName_ + sessionID_;
+		
+		if (topicName_.startsWith(RacaNetworkProxy.MASTER_COMMAND_TOPIC_NAME))
+
+			return RacaNetworkProxy.MEDIATORPROXY_URL + "racamastercommandproxy";
+
+		
+		return RacaNetworkProxy.MEDIATORPROXY_URL + "racapupilcommandproxy";
+			
 	}
 
 	public void parse(Object obj) {

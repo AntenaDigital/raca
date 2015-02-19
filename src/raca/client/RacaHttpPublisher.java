@@ -9,12 +9,16 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
+import raca.util.client.RacaLogUtil;
+import raca.util.client.RacaStringUtil;
+
 /**
 *
 * @author ANTENA DIGITAL
 */
 public class RacaHttpPublisher {
 
+	private RacaNetworkProxy proxy_ = null;
 	private String hitURL_ = null;
     private String topicName_ = null;	
 	private String sessionID_;
@@ -42,9 +46,9 @@ public class RacaHttpPublisher {
 		
 		String fullURL = new String(hitURL_ + "?" + RacaNetworkProxy.MEDIATORPROXY_REQ_ID_TAG + '='+ RacaNetworkProxy.MEDIATORPROXY_PUBLISH_TAG
                 + '&' + RacaNetworkProxy.TOPIC_NAME + '=' + topicName_ + '&' + RacaNetworkProxy.MEDIATORPROXY_CLIENT_ID_TAG + '=' + clientID.toString()
-                + '&' + RacaNetworkProxy.MEDIATORPROXY_LOG_MSG_TAG + '=' + msg.toString());
+                + '&' + RacaNetworkProxy.MEDIATORPROXY_LOG_MSG_TAG + '=' + msg.toString() + '&' + sessionID_);
 
-		System.out.println("The URL message to be published is : " + fullURL);
+		RacaLogUtil.log("The URL message to be published is : " + fullURL);
 				
 				URL racaMediatorURL = null;
 				URLConnection racaMediatorConn = null;
@@ -78,7 +82,7 @@ public class RacaHttpPublisher {
 	
 		try {         
 
-            System.out.println("Will now publish object for URL : " + hitURL_);
+            RacaLogUtil.log("Will now publish object for URL : " + hitURL_);
             
             URL url = new URL(hitURL_);
             HttpURLConnection urlCon = (HttpURLConnection)url.openConnection();

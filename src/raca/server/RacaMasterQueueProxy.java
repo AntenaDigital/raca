@@ -20,7 +20,7 @@ import raca.client.RacaNetworkProxy;
 */
 public class RacaMasterQueueProxy extends RacaMediatorProxy {
 
-	public static Vector masterLog_ = new Vector();
+	//public static Vector masterLog_ = new Vector();
 
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 

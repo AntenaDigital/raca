@@ -1,5 +1,8 @@
 package raca.util.client;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
 *
 * @author ANTENA DIGITAL
@@ -69,6 +72,7 @@ public class RacaStringUtil {
 	if (commandDesc.contains("CLOSE")) return "CLOSE";
 
 	return "UNKNOWN COMMAND";
+	
     }
 	
 }
