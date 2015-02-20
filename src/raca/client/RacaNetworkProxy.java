@@ -114,7 +114,7 @@ public class RacaNetworkProxy {
 
 
 	public static String MEDIATORPROXY_URL = "http://" + SERVERNAME
-			+ ":8080/racaserver/"; //racamediatorproxy
+			+ ":8080/raca/"; //racamediatorproxy
 
 	public static String ACTIVATED_FRAME_TITLE = "NO_TITLE";
 
@@ -381,7 +381,7 @@ public class RacaNetworkProxy {
 				URLConnection racaMediatorConn = racaMediatorURL.openConnection();
 				
 				BufferedReader buffReader = new BufferedReader(new InputStreamReader(racaMediatorConn.getInputStream()));
-				// na linha acima estora um ERROR...: Server returned HTTP response code: 500
+			
 				
 				/*
 				StringBuffer fullText = new StringBuffer();

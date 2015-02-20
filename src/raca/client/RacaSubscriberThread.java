@@ -11,7 +11,7 @@ import raca.util.client.RacaLogUtil;
 public class RacaSubscriberThread extends Thread{
 
 	private RacaMessageListener subscriber_ = null;
-	private RacaNetworkProxy proxy_ = null;
+	
 	
 	public RacaSubscriberThread(RacaMessageParser parser, String sessionID, String clientID) throws MalformedURLException{
 

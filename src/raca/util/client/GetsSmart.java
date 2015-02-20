@@ -1,8 +1,6 @@
 package raca.util.client;
 
 import java.net.MalformedURLException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 import raca.client.RacaAttendee;

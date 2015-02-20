@@ -18,7 +18,6 @@ import raca.util.client.RacaStringUtil;
 */
 public class RacaHttpPublisher {
 
-	private RacaNetworkProxy proxy_ = null;
 	private String hitURL_ = null;
     private String topicName_ = null;	
 	private String sessionID_;

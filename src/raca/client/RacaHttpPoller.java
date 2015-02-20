@@ -20,7 +20,6 @@ public class RacaHttpPoller implements RacaMessageListener{
 	public static int OBJ_POLLER = 1;
 	public static volatile int POLLING_MODE = OBJ_POLLER;
 
-	private RacaNetworkProxy proxy_ = null;
 	private RacaMessageParser parser_ = null;
 	private String clientID_ = null;
 	private String sessionID_ = null;
