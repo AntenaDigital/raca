@@ -1,5 +1,6 @@
 package raca.client;
 
+
 import raca.util.client.RacaLogUtil;
 import raca.util.client.RacaStringUtil;
 
@@ -609,8 +610,5 @@ public class RacaNetworkProxy {
             ex.printStackTrace();
         }
 		
-            RacaLogUtil.log("All Connections closed for SLAVE session ...");   
-
 	}
-
 }

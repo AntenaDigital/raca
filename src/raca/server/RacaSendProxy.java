@@ -31,7 +31,6 @@ public class RacaSendProxy extends RacaMediatorProxy {
 		
 
 		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, "Servlet SendProxy foi requerido...pelo " + clientID_ + "||" + reqID_);
-
 	}    
 
 

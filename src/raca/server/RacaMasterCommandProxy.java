@@ -21,7 +21,7 @@ public class RacaMasterCommandProxy extends RacaMediatorProxy {
 	private static final long serialVersionUID = 9L;
        
    	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-   		
+
    		
 		String reqID_ = (String) request.getParameter(RacaNetworkProxy.MEDIATORPROXY_REQ_ID_TAG);
 		String clientID_ = (String) request.getParameter(RacaNetworkProxy.MEDIATORPROXY_CLIENT_ID_TAG);
@@ -29,5 +29,4 @@ public class RacaMasterCommandProxy extends RacaMediatorProxy {
 		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, "Servlet MasterCommandProxy foi requerido...  pelo " + clientID_ + "||" + reqID_);
    		
    	}
-
 }
