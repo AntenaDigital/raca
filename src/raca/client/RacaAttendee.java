@@ -1,8 +1,6 @@
 package raca.client;
-
 import java.net.MalformedURLException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -78,16 +76,16 @@ public class RacaAttendee {
 		proxy_.subsMasterAck(sessionID, getClientID());
 		
 		proxy_.sendPupilRequest(sessionID);		
+		proxy_.sendMasterRequest(sessionID);
+		
+		proxy_.sendCommand("espero que servlet receba isso...");
+		this.quitSession(sessionID);
 		
 	}	
 	
 	public void joinSessionAsMaster(String sessionID) throws MalformedURLException {
 
-		proxy_.subsPupilAck(sessionID, getClientID());
-		proxy_.subsMasterAck(sessionID, getClientID());
-		
-		proxy_.sendMasterRequest(sessionID);			
-
+		proxy_.sendMasterRequest(sessionID);
 	}
 
 	public void quitSession(String sessionID){

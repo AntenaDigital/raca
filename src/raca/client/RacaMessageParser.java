@@ -1,5 +1,7 @@
 package raca.client;
 
+import java.net.MalformedURLException;
+
 
 /**
 *
@@ -9,5 +11,5 @@ public interface RacaMessageParser {
 
 	void parse(Object obj);
 	String topicName();
-	String hitURL();
+	String hitURL() throws MalformedURLException;
 }

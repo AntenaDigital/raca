@@ -1,6 +1,8 @@
 package raca.client;
 
+import java.net.MalformedURLException;
 import raca.util.client.RacaStringUtil;
+
 
 /**
 *
@@ -35,12 +37,15 @@ public class RacaPupilRequestParser implements RacaMessageParser {
 	@Override
 	public String topicName() {
 		
-		return topicName_ + sessionID_;
+		return topicName_;
 	}
 
 	@Override
-	public String hitURL() {
+	public String hitURL() throws MalformedURLException{
 		
-		return topicName_ + sessionID_;
+		if (!topicName_.startsWith(RacaNetworkProxy.PUPIL_REQ_QUEUE_NAME))
+			throw new MalformedURLException();
+
+		return RacaNetworkProxy.MEDIATORPROXY_URL + "racapupilreqproxy";
 	}
 }
